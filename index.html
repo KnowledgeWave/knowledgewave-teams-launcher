@@ -173,56 +173,82 @@
     (function () {
       var TARGET = 'https://members.knowledgewave.com/dashboard?azure_ad_sso=true';
       var opened = false;
+      var sdkReady = false;
 
       function showFallback() {
         var el = document.getElementById('fallback');
         if (el) el.classList.add('show');
       }
 
-      function openExternal() {
-        if (opened) return;
-        opened = true;
-
-        // Strategy 1: Microsoft Teams SDK (preferred — uses Teams shell's
-        // URL handler, opens in the user's default OS browser).
-        try {
-          if (window.microsoftTeams && microsoftTeams.app) {
-            microsoftTeams.app.initialize().then(function () {
-              microsoftTeams.app.openLink(TARGET).catch(strategy2);
-            }).catch(strategy2);
-            return;
-          }
-        } catch (e) { /* fall through */ }
-
-        strategy2();
+      // Strategy 1: Microsoft Teams SDK — uses Teams shell's URL handler,
+      // opens in the user's default OS browser. Must be called AFTER the
+      // SDK has fully initialized; firing too early silently no-ops.
+      function tryTeamsSdkOpen() {
+        if (opened) return Promise.resolve(true);
+        if (!sdkReady || !window.microsoftTeams || !microsoftTeams.app) {
+          return Promise.reject(new Error('SDK not ready'));
+        }
+        return microsoftTeams.app.openLink(TARGET).then(function () {
+          opened = true;
+          return true;
+        });
       }
 
-      // Strategy 2: plain window.open (works in web Teams and as a fallback).
-      function strategy2() {
+      // Strategy 2: plain window.open — works in web Teams, may be blocked
+      // in desktop without a user gesture.
+      function tryWindowOpen() {
+        if (opened) return false;
         try {
           var w = window.open(TARGET, '_blank', 'noopener,noreferrer');
-          if (!w) {
-            // Popup blocked — user will need to click the manual button.
-            showFallback();
+          if (w) {
+            opened = true;
+            return true;
           }
-        } catch (e) {
-          showFallback();
+        } catch (e) { /* fall through */ }
+        return false;
+      }
+
+      // Initialize the Teams SDK, then attempt openLink with a retry.
+      function init() {
+        if (!window.microsoftTeams || !microsoftTeams.app) {
+          // SDK script never loaded (network issue, CSP, etc.) — try
+          // window.open immediately, show fallback if blocked.
+          if (!tryWindowOpen()) showFallback();
+          return;
         }
-      }
 
-      // Fire as soon as the page is ready. Slight delay so the user sees
-      // the brand frame for a moment rather than a hard flash.
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function () {
-          setTimeout(openExternal, 250);
+        microsoftTeams.app.initialize().then(function () {
+          sdkReady = true;
+          // First attempt — immediately after init resolves.
+          tryTeamsSdkOpen().catch(function () {
+            // Second attempt — after a short delay, in case the Teams
+            // shell needs a moment to be ready to receive openLink.
+            setTimeout(function () {
+              tryTeamsSdkOpen().catch(function () {
+                // SDK couldn't open the link — fall back to window.open,
+                // then to the manual button if even that's blocked.
+                if (!tryWindowOpen()) showFallback();
+              });
+            }, 500);
+          });
+        }).catch(function () {
+          // Not running inside Teams (e.g., page loaded standalone in a
+          // browser). Use window.open.
+          if (!tryWindowOpen()) showFallback();
         });
-      } else {
-        setTimeout(openExternal, 250);
       }
 
-      // Always reveal the manual link after 2.5s in case the auto-open
-      // silently failed (some Teams clients block window.open without warning).
-      setTimeout(showFallback, 2500);
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+
+      // Always reveal the manual link after 3 seconds as a safety net,
+      // regardless of what the auto-open attempts did. If auto-open
+      // succeeded, the fallback button is harmless — the new tab already
+      // opened. If it failed silently, this gives the user a clear action.
+      setTimeout(showFallback, 3000);
     })();
   </script>
 </body>
