@@ -3,252 +3,353 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>KnowledgeWave — Opening Training Portal</title>
+  <title>KnowledgeWave Training Portal</title>
   <meta name="robots" content="noindex,nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --cobalt: #0E57A4;
       --cobalt-deep: #084079;
+      --cobalt-ink: #062a4f;
       --cyan: #26ABE3;
-      --ink: #0a1e36;
+      --cyan-soft: #5fc4ef;
       --paper: #ffffff;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; }
-    body {
-      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
-      background: radial-gradient(ellipse at top, var(--cobalt) 0%, var(--cobalt-deep) 100%);
-      color: var(--paper);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      position: relative;
-      min-height: 100vh;
+      --paper-dim: rgba(255, 255, 255, 0.72);
+      --paper-faint: rgba(255, 255, 255, 0.38);
+      --paper-line: rgba(255, 255, 255, 0.14);
     }
 
-    /* Decorative wave at the bottom, echoes the Teams icon */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--cobalt-deep);
+      color: var(--paper);
+      min-height: 100vh;
+      overflow: hidden;
+      position: relative;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Atmospheric gradient — soft cobalt light from upper left */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 0%, var(--cobalt) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 50% at 90% 100%, rgba(38, 171, 227, 0.25) 0%, transparent 60%),
+        var(--cobalt-deep);
+      z-index: 0;
+    }
+
+    /* Subtle noise to break up flat gradient */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/><feColorMatrix values='0 0 0 0 1, 0 0 0 0 1, 0 0 0 0 1, 0 0 0 0.04 0'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
+      opacity: 0.5;
+      mix-blend-mode: overlay;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Wave motif at the bottom — brand signature */
     .waves {
-      position: absolute;
+      position: fixed;
       bottom: 0;
       left: 0;
       width: 100%;
-      height: 140px;
+      height: 32vh;
+      min-height: 200px;
       pointer-events: none;
-      opacity: 0.35;
+      z-index: 1;
+      opacity: 0.5;
     }
     .waves svg { width: 100%; height: 100%; display: block; }
 
-    .card {
+    /* Top brand strip */
+    .topbar {
       position: relative;
-      z-index: 2;
-      max-width: 480px;
-      padding: 48px 40px;
-      text-align: center;
-      animation: rise 0.5s ease-out;
+      z-index: 3;
+      padding: 32px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
-    @keyframes rise {
-      from { opacity: 0; transform: translateY(12px); }
-      to   { opacity: 1; transform: translateY(0); }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
-
-    .wordmark {
-      font-size: 14px;
-      font-weight: 600;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: var(--cyan);
-      margin-bottom: 32px;
-      opacity: 0.95;
-    }
-
-    h1 {
-      font-size: 28px;
-      font-weight: 300;
-      letter-spacing: -0.01em;
-      line-height: 1.25;
-      margin-bottom: 12px;
-    }
-    h1 strong { font-weight: 600; }
-
-    .sub {
-      font-size: 15px;
-      opacity: 0.75;
-      margin-bottom: 36px;
-      line-height: 1.5;
-    }
-
-    /* Three-dot pulse loader */
-    .dots {
-      display: inline-flex;
-      gap: 6px;
-      margin-bottom: 32px;
-    }
-    .dots span {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--cyan);
-      animation: pulse 1.4s ease-in-out infinite;
-    }
-    .dots span:nth-child(2) { animation-delay: 0.2s; }
-    .dots span:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes pulse {
-      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-      40%           { transform: scale(1.0); opacity: 1.0; }
-    }
-
-    .fallback {
-      margin-top: 8px;
-      font-size: 14px;
-      opacity: 0;
-      transition: opacity 0.4s ease-out;
-    }
-    .fallback.show { opacity: 0.95; }
-    .fallback p { margin-bottom: 14px; opacity: 0.75; }
-
-    .button {
-      display: inline-block;
-      padding: 12px 28px;
+    .brand-mark {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
       background: var(--paper);
       color: var(--cobalt);
-      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Fraunces', serif;
+      font-weight: 600;
+      font-size: 18px;
+      letter-spacing: -0.02em;
+    }
+    .brand-name {
+      font-family: 'Inter', sans-serif;
       font-size: 14px;
       font-weight: 600;
       letter-spacing: 0.02em;
-      border-radius: 6px;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
     }
-    .button:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
-    }
-    .button:active { transform: translateY(0); }
-
-    .footnote {
-      position: absolute;
-      bottom: 24px;
-      width: 100%;
-      text-align: center;
+    .topbar-meta {
       font-size: 12px;
-      opacity: 0.5;
-      z-index: 2;
+      color: var(--paper-faint);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    /* Main centerpiece */
+    .stage {
+      position: relative;
+      z-index: 3;
+      min-height: calc(100vh - 100px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 48px 80px;
+    }
+
+    .card {
+      max-width: 560px;
+      text-align: center;
+      animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 14px;
+      border: 1px solid var(--paper-line);
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--paper-dim);
+      margin-bottom: 32px;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+    .eyebrow::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
+    }
+
+    h1 {
+      font-family: 'Fraunces', serif;
+      font-weight: 300;
+      font-size: clamp(40px, 6vw, 64px);
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+      margin-bottom: 24px;
+      font-variation-settings: "opsz" 144;
+    }
+    h1 em {
+      font-style: italic;
+      font-weight: 400;
+      color: var(--cyan-soft);
+    }
+
+    .sub {
+      font-size: 17px;
+      font-weight: 400;
+      line-height: 1.55;
+      color: var(--paper-dim);
+      max-width: 440px;
+      margin: 0 auto 48px;
+    }
+
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 32px;
+      background: var(--paper);
+      color: var(--cobalt-ink);
+      text-decoration: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1),
+                  box-shadow 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.32), 0 4px 8px rgba(0, 0, 0, 0.12);
+    }
+    .cta:active { transform: translateY(0); }
+    .cta svg {
+      width: 16px;
+      height: 16px;
+      transition: transform 0.18s ease;
+    }
+    .cta:hover svg { transform: translateX(2px); }
+
+    .helper {
+      margin-top: 32px;
+      font-size: 13px;
+      color: var(--paper-faint);
+      letter-spacing: 0.01em;
+    }
+    .helper-divider {
+      display: inline-block;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--paper-faint);
+      margin: 0 10px;
+      vertical-align: middle;
+    }
+
+    /* Footer */
+    .footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 24px 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--paper-faint);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 500;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    @media (max-width: 600px) {
+      .topbar { padding: 20px 24px; }
+      .stage { padding: 24px 24px 100px; }
+      .footer { padding: 20px 24px; font-size: 10px; }
+      h1 { margin-bottom: 20px; }
+      .sub { font-size: 15px; margin-bottom: 36px; }
+      .cta { padding: 14px 26px; font-size: 14px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .card { animation: none; }
+      .cta, .cta svg { transition: none; }
     }
   </style>
 </head>
 <body>
+
   <div class="waves" aria-hidden="true">
-    <svg viewBox="0 0 1200 140" preserveAspectRatio="none">
-      <path d="M0,80 Q300,20 600,80 T1200,80 L1200,140 L0,140 Z" fill="#26ABE3" opacity="0.6"/>
-      <path d="M0,100 Q300,50 600,100 T1200,100 L1200,140 L0,140 Z" fill="#ffffff" opacity="0.4"/>
+    <svg viewBox="0 0 1440 320" preserveAspectRatio="none">
+      <path d="M0,160 Q360,80 720,160 T1440,160 L1440,320 L0,320 Z"
+            fill="#26ABE3" opacity="0.35"/>
+      <path d="M0,200 Q360,130 720,200 T1440,200 L1440,320 L0,320 Z"
+            fill="#5fc4ef" opacity="0.22"/>
+      <path d="M0,240 Q360,180 720,240 T1440,240 L1440,320 L0,320 Z"
+            fill="#ffffff" opacity="0.10"/>
     </svg>
   </div>
 
-  <main class="card" role="main">
-    <div class="wordmark">KnowledgeWave</div>
-    <h1>Opening your <strong>training portal</strong></h1>
-    <p class="sub">We're launching KnowledgeWave in your default browser so you can sign in with your Microsoft 365 account.</p>
-
-    <div class="dots" aria-label="Loading">
-      <span></span><span></span><span></span>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">kw</div>
+      <div class="brand-name">KnowledgeWave</div>
     </div>
+    <div class="topbar-meta">Training Portal</div>
+  </header>
 
-    <div class="fallback" id="fallback">
-      <p>Didn't open automatically?</p>
+  <main class="stage">
+    <div class="card">
+      <div class="eyebrow">Microsoft 365 Single Sign-On</div>
+
+      <h1>Welcome to your <em>training portal</em></h1>
+
+      <p class="sub">
+        Continue to KnowledgeWave to access your courses, certifications,
+        and learning paths. You'll sign in with your Microsoft 365 account.
+      </p>
+
       <a href="https://members.knowledgewave.com/dashboard?azure_ad_sso=true"
          target="_blank"
          rel="noopener"
-         class="button"
-         id="manual-link">Open KnowledgeWave</a>
+         class="cta"
+         id="cta">
+        Open KnowledgeWave
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+
+      <div class="helper">
+        Opens in your default browser
+        <span class="helper-divider"></span>
+        Sign-in is automatic
+      </div>
     </div>
   </main>
 
-  <div class="footnote">Microsoft 365 single sign-on enabled</div>
+  <footer class="footer">
+    <span>KnowledgeWave for Microsoft Teams</span>
+    <span>Secure · Federated · Audit-ready</span>
+  </footer>
 
-  <!-- Microsoft Teams JS SDK (v2) -->
+  <!-- Teams SDK — used only to route the click through the Teams shell
+       when running inside Teams (cleaner OS-level browser handoff). The
+       auto-open behavior is intentionally removed. -->
   <script src="https://res.cdn.office.net/teams-js/2.24.0/js/MicrosoftTeams.min.js"></script>
-
   <script>
     (function () {
       var TARGET = 'https://members.knowledgewave.com/dashboard?azure_ad_sso=true';
-      var opened = false;
-      var sdkReady = false;
+      var inTeams = false;
 
-      function showFallback() {
-        var el = document.getElementById('fallback');
-        if (el) el.classList.add('show');
-      }
-
-      // Strategy 1: Microsoft Teams SDK — uses Teams shell's URL handler,
-      // opens in the user's default OS browser. Must be called AFTER the
-      // SDK has fully initialized; firing too early silently no-ops.
-      function tryTeamsSdkOpen() {
-        if (opened) return Promise.resolve(true);
-        if (!sdkReady || !window.microsoftTeams || !microsoftTeams.app) {
-          return Promise.reject(new Error('SDK not ready'));
+      try {
+        if (window.microsoftTeams && microsoftTeams.app) {
+          microsoftTeams.app.initialize().then(function () {
+            inTeams = true;
+          }).catch(function () { /* not in Teams, no-op */ });
         }
-        return microsoftTeams.app.openLink(TARGET).then(function () {
-          opened = true;
-          return true;
-        });
-      }
+      } catch (e) { /* SDK blocked, no-op */ }
 
-      // Strategy 2: plain window.open — works in web Teams, may be blocked
-      // in desktop without a user gesture.
-      function tryWindowOpen() {
-        if (opened) return false;
-        try {
-          var w = window.open(TARGET, '_blank', 'noopener,noreferrer');
-          if (w) {
-            opened = true;
-            return true;
+      var cta = document.getElementById('cta');
+      if (cta) {
+        cta.addEventListener('click', function (e) {
+          if (inTeams && window.microsoftTeams && microsoftTeams.app
+              && typeof microsoftTeams.app.openLink === 'function') {
+            e.preventDefault();
+            microsoftTeams.app.openLink(TARGET).catch(function () {
+              window.open(TARGET, '_blank', 'noopener,noreferrer');
+            });
           }
-        } catch (e) { /* fall through */ }
-        return false;
-      }
-
-      // Initialize the Teams SDK, then attempt openLink with a retry.
-      function init() {
-        if (!window.microsoftTeams || !microsoftTeams.app) {
-          // SDK script never loaded (network issue, CSP, etc.) — try
-          // window.open immediately, show fallback if blocked.
-          if (!tryWindowOpen()) showFallback();
-          return;
-        }
-
-        microsoftTeams.app.initialize().then(function () {
-          sdkReady = true;
-          // First attempt — immediately after init resolves.
-          tryTeamsSdkOpen().catch(function () {
-            // Second attempt — after a short delay, in case the Teams
-            // shell needs a moment to be ready to receive openLink.
-            setTimeout(function () {
-              tryTeamsSdkOpen().catch(function () {
-                // SDK couldn't open the link — fall back to window.open,
-                // then to the manual button if even that's blocked.
-                if (!tryWindowOpen()) showFallback();
-              });
-            }, 500);
-          });
-        }).catch(function () {
-          // Not running inside Teams (e.g., page loaded standalone in a
-          // browser). Use window.open.
-          if (!tryWindowOpen()) showFallback();
+          // Outside Teams, the anchor's target=_blank handles it natively.
         });
       }
-
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-      } else {
-        init();
-      }
-
-      // Always reveal the manual link after 3 seconds as a safety net,
-      // regardless of what the auto-open attempts did. If auto-open
-      // succeeded, the fallback button is harmless — the new tab already
-      // opened. If it failed silently, this gives the user a clear action.
-      setTimeout(showFallback, 3000);
     })();
   </script>
 </body>
