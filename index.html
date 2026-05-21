@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KnowledgeWave — Opening Training Portal</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <style>
+    :root {
+      --cobalt: #0E57A4;
+      --cobalt-deep: #084079;
+      --cyan: #26ABE3;
+      --ink: #0a1e36;
+      --paper: #ffffff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      background: radial-gradient(ellipse at top, var(--cobalt) 0%, var(--cobalt-deep) 100%);
+      color: var(--paper);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      min-height: 100vh;
+    }
+
+    /* Decorative wave at the bottom, echoes the Teams icon */
+    .waves {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 140px;
+      pointer-events: none;
+      opacity: 0.35;
+    }
+    .waves svg { width: 100%; height: 100%; display: block; }
+
+    .card {
+      position: relative;
+      z-index: 2;
+      max-width: 480px;
+      padding: 48px 40px;
+      text-align: center;
+      animation: rise 0.5s ease-out;
+    }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .wordmark {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 32px;
+      opacity: 0.95;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 300;
+      letter-spacing: -0.01em;
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+    h1 strong { font-weight: 600; }
+
+    .sub {
+      font-size: 15px;
+      opacity: 0.75;
+      margin-bottom: 36px;
+      line-height: 1.5;
+    }
+
+    /* Three-dot pulse loader */
+    .dots {
+      display: inline-flex;
+      gap: 6px;
+      margin-bottom: 32px;
+    }
+    .dots span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--cyan);
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+    .dots span:nth-child(2) { animation-delay: 0.2s; }
+    .dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes pulse {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+      40%           { transform: scale(1.0); opacity: 1.0; }
+    }
+
+    .fallback {
+      margin-top: 8px;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.4s ease-out;
+    }
+    .fallback.show { opacity: 0.95; }
+    .fallback p { margin-bottom: 14px; opacity: 0.75; }
+
+    .button {
+      display: inline-block;
+      padding: 12px 28px;
+      background: var(--paper);
+      color: var(--cobalt);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      border-radius: 6px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    }
+    .button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
+    }
+    .button:active { transform: translateY(0); }
+
+    .footnote {
+      position: absolute;
+      bottom: 24px;
+      width: 100%;
+      text-align: center;
+      font-size: 12px;
+      opacity: 0.5;
+      z-index: 2;
+    }
+  </style>
+</head>
+<body>
+  <div class="waves" aria-hidden="true">
+    <svg viewBox="0 0 1200 140" preserveAspectRatio="none">
+      <path d="M0,80 Q300,20 600,80 T1200,80 L1200,140 L0,140 Z" fill="#26ABE3" opacity="0.6"/>
+      <path d="M0,100 Q300,50 600,100 T1200,100 L1200,140 L0,140 Z" fill="#ffffff" opacity="0.4"/>
+    </svg>
+  </div>
+
+  <main class="card" role="main">
+    <div class="wordmark">KnowledgeWave</div>
+    <h1>Opening your <strong>training portal</strong></h1>
+    <p class="sub">We're launching KnowledgeWave in your default browser so you can sign in with your Microsoft 365 account.</p>
+
+    <div class="dots" aria-label="Loading">
+      <span></span><span></span><span></span>
+    </div>
+
+    <div class="fallback" id="fallback">
+      <p>Didn't open automatically?</p>
+      <a href="https://members.knowledgewave.com/dashboard?azure_ad_sso=true"
+         target="_blank"
+         rel="noopener"
+         class="button"
+         id="manual-link">Open KnowledgeWave</a>
+    </div>
+  </main>
+
+  <div class="footnote">Microsoft 365 single sign-on enabled</div>
+
+  <!-- Microsoft Teams JS SDK (v2) -->
+  <script src="https://res.cdn.office.net/teams-js/2.24.0/js/MicrosoftTeams.min.js"></script>
+
+  <script>
+    (function () {
+      var TARGET = 'https://members.knowledgewave.com/dashboard?azure_ad_sso=true';
+      var opened = false;
+
+      function showFallback() {
+        var el = document.getElementById('fallback');
+        if (el) el.classList.add('show');
+      }
+
+      function openExternal() {
+        if (opened) return;
+        opened = true;
+
+        // Strategy 1: Microsoft Teams SDK (preferred — uses Teams shell's
+        // URL handler, opens in the user's default OS browser).
+        try {
+          if (window.microsoftTeams && microsoftTeams.app) {
+            microsoftTeams.app.initialize().then(function () {
+              microsoftTeams.app.openLink(TARGET).catch(strategy2);
+            }).catch(strategy2);
+            return;
+          }
+        } catch (e) { /* fall through */ }
+
+        strategy2();
+      }
+
+      // Strategy 2: plain window.open (works in web Teams and as a fallback).
+      function strategy2() {
+        try {
+          var w = window.open(TARGET, '_blank', 'noopener,noreferrer');
+          if (!w) {
+            // Popup blocked — user will need to click the manual button.
+            showFallback();
+          }
+        } catch (e) {
+          showFallback();
+        }
+      }
+
+      // Fire as soon as the page is ready. Slight delay so the user sees
+      // the brand frame for a moment rather than a hard flash.
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () {
+          setTimeout(openExternal, 250);
+        });
+      } else {
+        setTimeout(openExternal, 250);
+      }
+
+      // Always reveal the manual link after 2.5s in case the auto-open
+      // silently failed (some Teams clients block window.open without warning).
+      setTimeout(showFallback, 2500);
+    })();
+  </script>
+</body>
+</html>
